@@ -7,11 +7,20 @@ import { ShieldAlert } from "lucide-react";
 
 export default function AdminLogin() {
   const { login } = useAuth();
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    login(email || "admin@layven.com", 'admin');
+    setLoading(true);
+    try {
+      await login(username, password);
+    } catch (error) {
+      // Error is handled in auth context
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -25,22 +34,34 @@ export default function AdminLogin() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-white/70">Admin Email</label>
+            <label className="text-xs font-bold uppercase tracking-wider text-white/70">Admin Username</label>
             <Input 
-              type="email" 
-              placeholder="admin@layven.com" 
+              type="text" 
+              placeholder="admin" 
               className="rounded-none h-12 bg-black/50 border-white/10 text-white focus:border-primary"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
             />
           </div>
           <div className="space-y-2">
             <label className="text-xs font-bold uppercase tracking-wider text-white/70">Password</label>
-            <Input type="password" placeholder="••••••••" className="rounded-none h-12 bg-black/50 border-white/10 text-white focus:border-primary" />
+            <Input 
+              type="password" 
+              placeholder="••••••••" 
+              className="rounded-none h-12 bg-black/50 border-white/10 text-white focus:border-primary"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
           </div>
 
-          <Button type="submit" className="w-full h-12 bg-primary text-black hover:bg-white rounded-none uppercase font-bold tracking-widest">
-            Authenticate
+          <Button 
+            type="submit" 
+            className="w-full h-12 bg-primary text-black hover:bg-white rounded-none uppercase font-bold tracking-widest"
+            disabled={loading}
+          >
+            {loading ? "Authenticating..." : "Authenticate"}
           </Button>
         </form>
       </div>

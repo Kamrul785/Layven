@@ -33,25 +33,71 @@ const chartData = [
   { name: 'Sun', sales: 3490 },
 ];
 
+interface Product {
+  id: string;
+  name: string;
+  price: string;
+  description?: string;
+  image?: string;
+  category?: string;
+  stock: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export default function AdminDashboard() {
-  const { user, logout, isAdmin } = useAuth();
-  const { orders, updateOrderStatus, addProduct, products, featuredProductIds, toggleFeatured } = useStore();
+  const { user, logout, isAdmin, loading: authLoading } = useAuth();
+  const { orders, updateOrderStatus } = useStore();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
   
   // New Product State
   const [newProductName, setNewProductName] = useState("");
   const [newProductPrice, setNewProductPrice] = useState("");
+  const [newProductCategory, setNewProductCategory] = useState("");
+  const [newProductStock, setNewProductStock] = useState("0");
+  const [newProductDescription, setNewProductDescription] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
-    if (!isAdmin) {
+    if (!authLoading && !isAdmin) {
       setLocation('/admin/login');
     }
-  }, [isAdmin, setLocation]);
+  }, [isAdmin, setLocation, authLoading]);
 
-  if (!isAdmin) return null;
+  // Fetch products
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/products', {
+          credentials: 'include'
+        });
+        const data = await response.json();
+        if (response.ok) {
+          setProducts(data.products || []);
+        }
+      } catch (error) {
+        console.error('Failed to fetch products:', error);
+        toast({ 
+          title: "Error", 
+          description: "Failed to fetch products",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (isAdmin) {
+      fetchProducts();
+    }
+  }, [isAdmin, toast]);
+
+  if (authLoading || !isAdmin) return null;
 
   // Calculate real stats
   const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
@@ -59,22 +105,62 @@ export default function AdminDashboard() {
   // Mock active users for now
   const activeUsers = 124;
 
-  const handleAddProduct = () => {
-    if (!newProductName || !newProductPrice) return;
+  const handleAddProduct = async () => {
+    if (!newProductName || !newProductPrice) {
+      toast({ 
+        title: "Error", 
+        description: "Please fill in all required fields",
+        variant: "destructive"
+      });
+      return;
+    }
     
-    addProduct({
-      name: newProductName,
-      price: parseFloat(newProductPrice),
-      color: "Black", // Default
-      image: "https://placehold.co/600x800/png?text=" + newProductName.replace(/ /g, "+"), // Auto-generate placeholder
-      description: "New addition to the collection.",
-      sizes: ["S", "M", "L", "XL"]
-    });
+    try {
+      const payload = {
+        name: newProductName,
+        price: newProductPrice, // Send as string
+        category: newProductCategory || undefined,
+        stock: newProductStock || "0",
+        description: newProductDescription || undefined,
+        image: undefined
+      };
 
-    toast({ title: "Product Added", description: `${newProductName} added to catalog.` });
-    setNewProductName("");
-    setNewProductPrice("");
-    setIsDialogOpen(false);
+      console.log("Sending payload:", payload);
+
+      const response = await fetch('/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(payload)
+      });
+
+      const data = await response.json();
+      console.log("Response:", data);
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to create product');
+      }
+
+      setProducts([...products, data.product]);
+      toast({ 
+        title: "Success", 
+        description: `${newProductName} added to catalog.` 
+      });
+      
+      setNewProductName("");
+      setNewProductPrice("");
+      setNewProductCategory("");
+      setNewProductStock("0");
+      setNewProductDescription("");
+      setIsDialogOpen(false);
+    } catch (error: any) {
+      console.error("Error:", error);
+      toast({ 
+        title: "Error", 
+        description: error.message || "Failed to add product",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -118,11 +204,11 @@ export default function AdminDashboard() {
           </h2>
           <div className="flex items-center gap-4">
             <div className="text-right">
-              <p className="font-bold">{user?.name}</p>
+              <p className="font-bold">{user?.username || 'Admin'}</p>
               <p className="text-xs text-muted-foreground">Administrator</p>
             </div>
-            <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center font-bold">
-              {user?.name?.charAt(0)}
+            <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center font-bold text-black">
+              {user?.username?.charAt(0).toUpperCase() || 'A'}
             </div>
           </div>
         </div>
@@ -256,14 +342,52 @@ export default function AdminDashboard() {
                   </DialogHeader>
                   <div className="space-y-4 py-4">
                     <div className="space-y-2">
-                      <label className="text-sm font-bold">Product Name</label>
-                      <Input value={newProductName} onChange={e => setNewProductName(e.target.value)} placeholder="e.g. Stealth Bomber Jacket" />
+                      <label className="text-sm font-bold">Product Name *</label>
+                      <Input 
+                        value={newProductName} 
+                        onChange={e => setNewProductName(e.target.value)} 
+                        placeholder="e.g. Stealth Bomber Jacket" 
+                      />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-sm font-bold">Price</label>
-                      <Input type="number" value={newProductPrice} onChange={e => setNewProductPrice(e.target.value)} placeholder="95.00" />
+                      <label className="text-sm font-bold">Price *</label>
+                      <Input 
+                        type="number" 
+                        step="0.01"
+                        value={newProductPrice} 
+                        onChange={e => setNewProductPrice(e.target.value)} 
+                        placeholder="95.00" 
+                      />
                     </div>
-                    <Button onClick={handleAddProduct} className="w-full bg-black text-white hover:bg-primary hover:text-black rounded-none uppercase font-bold">
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold">Category</label>
+                      <Input 
+                        value={newProductCategory} 
+                        onChange={e => setNewProductCategory(e.target.value)} 
+                        placeholder="e.g. Jackets" 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold">Stock</label>
+                      <Input 
+                        type="number" 
+                        value={newProductStock} 
+                        onChange={e => setNewProductStock(e.target.value)} 
+                        placeholder="0" 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold">Description</label>
+                      <Input 
+                        value={newProductDescription} 
+                        onChange={e => setNewProductDescription(e.target.value)} 
+                        placeholder="Product description" 
+                      />
+                    </div>
+                    <Button 
+                      onClick={handleAddProduct} 
+                      className="w-full bg-black text-white hover:bg-primary hover:text-black rounded-none uppercase font-bold"
+                    >
                       Save Product
                     </Button>
                   </div>
@@ -272,37 +396,32 @@ export default function AdminDashboard() {
             </div>
             
             <div className="p-8">
-              <table className="w-full">
-                <thead>
-                  <tr className="text-left text-xs text-muted-foreground uppercase tracking-wider">
-                    <th className="pb-4">Product</th>
-                    <th className="pb-4">Color</th>
-                    <th className="pb-4 text-right">Price</th>
-                    <th className="pb-4 text-right">Featured on Home</th>
-                  </tr>
-                </thead>
-                <tbody className="text-sm">
-                  {products.map((product) => (
-                    <tr key={product.id} className="border-b border-border last:border-0 hover:bg-secondary/5 transition-colors">
-                      <td className="py-4 font-bold">{product.name}</td>
-                      <td className="py-4 text-muted-foreground">{product.color}</td>
-                      <td className="py-4 text-right font-medium">${product.price}</td>
-                      <td className="py-4 text-right">
-                        <div className="flex justify-end">
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => toggleFeatured(product.id)}
-                            className={featuredProductIds.includes(product.id) ? "text-yellow-500 hover:text-yellow-600" : "text-muted-foreground hover:text-black"}
-                          >
-                            {featuredProductIds.includes(product.id) ? <Star className="w-5 h-5 fill-current" /> : <StarOff className="w-5 h-5" />}
-                          </Button>
-                        </div>
-                      </td>
+              {loading ? (
+                <div className="text-center text-muted-foreground">Loading products...</div>
+              ) : products.length === 0 ? (
+                <div className="text-center text-muted-foreground">No products yet. Click "Add Product" to get started!</div>
+              ) : (
+                <table className="w-full">
+                  <thead>
+                    <tr className="text-left text-xs text-muted-foreground uppercase tracking-wider">
+                      <th className="pb-4">Product</th>
+                      <th className="pb-4">Category</th>
+                      <th className="pb-4 text-right">Price</th>
+                      <th className="pb-4 text-right">Stock</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="text-sm">
+                    {products.map((product) => (
+                      <tr key={product.id} className="border-b border-border last:border-0 hover:bg-secondary/5 transition-colors">
+                        <td className="py-4 font-bold">{product.name}</td>
+                        <td className="py-4 text-muted-foreground">{product.category || '-'}</td>
+                        <td className="py-4 text-right font-medium">${parseFloat(product.price).toFixed(2)}</td>
+                        <td className="py-4 text-right">{product.stock}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
           </div>
         )}

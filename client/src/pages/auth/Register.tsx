@@ -3,13 +3,38 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link } from "wouter";
 import { useAuth } from "@/lib/auth";
+import { useState } from "react";
 
 export default function Register() {
-  const { login } = useAuth();
+  const { register } = useAuth();
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    login("newuser@layven.com", 'user');
+    setError("");
+    
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await register(username, password);
+    } catch (error) {
+      // Error is handled in auth context
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -22,29 +47,56 @@ export default function Register() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider">First Name</label>
-                <Input placeholder="John" className="rounded-none h-12 bg-secondary/5" />
+            {error && (
+              <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded text-sm">
+                {error}
               </div>
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider">Last Name</label>
-                <Input placeholder="Doe" className="rounded-none h-12 bg-secondary/5" />
-              </div>
-            </div>
+            )}
 
             <div className="space-y-2">
-              <label className="text-xs font-bold uppercase tracking-wider">Email</label>
-              <Input type="email" placeholder="name@example.com" className="rounded-none h-12 bg-secondary/5" />
+              <label className="text-xs font-bold uppercase tracking-wider">Username</label>
+              <Input 
+                type="text"
+                placeholder="username" 
+                className="rounded-none h-12 bg-secondary/5"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+              />
             </div>
             
             <div className="space-y-2">
               <label className="text-xs font-bold uppercase tracking-wider">Password</label>
-              <Input type="password" placeholder="••••••••" className="rounded-none h-12 bg-secondary/5" />
+              <Input 
+                type="password" 
+                placeholder="••••••••" 
+                className="rounded-none h-12 bg-secondary/5"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
+              />
             </div>
 
-            <Button type="submit" className="w-full h-12 bg-black text-white hover:bg-primary hover:text-black rounded-none uppercase font-bold tracking-widest">
-              Create Account
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase tracking-wider">Confirm Password</label>
+              <Input 
+                type="password" 
+                placeholder="••••••••" 
+                className="rounded-none h-12 bg-secondary/5"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                minLength={6}
+              />
+            </div>
+
+            <Button 
+              type="submit" 
+              className="w-full h-12 bg-black text-white hover:bg-primary hover:text-black rounded-none uppercase font-bold tracking-widest"
+              disabled={loading}
+            >
+              {loading ? "Creating Account..." : "Create Account"}
             </Button>
           </form>
 

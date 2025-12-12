@@ -1,67 +1,157 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 
 type UserRole = 'user' | 'admin' | null;
 
 interface User {
-  email: string;
-  name: string;
-  role: UserRole;
+  id: string;
+  username: string;
+  isAdmin: boolean;
 }
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, role: 'user' | 'admin') => void;
-  logout: () => void;
+  login: (username: string, password: string) => Promise<void>;
+  register: (username: string, password: string, isAdmin?: boolean) => Promise<void>;
+  logout: () => Promise<void>;
   isAuthenticated: boolean;
   isAdmin: boolean;
+  loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
-  const login = (email: string, role: 'user' | 'admin') => {
-    // Mock login logic
-    const newUser = {
-      email,
-      name: role === 'admin' ? 'Admin User' : 'John Doe',
-      role
+  // Check if user is already logged in on mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await fetch('/api/auth/me', {
+          credentials: 'include'
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setUser(data.user);
+        }
+      } catch (error) {
+        console.error('Auth check failed:', error);
+      } finally {
+        setLoading(false);
+      }
     };
-    setUser(newUser);
-    
-    toast({
-      title: `Welcome back, ${newUser.name}`,
-      description: "You have successfully logged in.",
-    });
 
-    if (role === 'admin') {
-      setLocation('/admin/dashboard');
-    } else {
-      setLocation('/dashboard');
+    checkAuth();
+  }, []);
+
+  const register = async (username: string, password: string, isAdmin: boolean = false) => {
+    try {
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password, isAdmin }),
+        credentials: 'include'
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Registration failed');
+      }
+
+      setUser(data.user);
+      
+      toast({
+        title: "Welcome!",
+        description: "Your account has been created successfully.",
+      });
+
+      if (data.user.isAdmin) {
+        setLocation('/admin/dashboard');
+      } else {
+        setLocation('/dashboard');
+      }
+    } catch (error: any) {
+      toast({
+        title: "Registration failed",
+        description: error.message,
+        variant: "destructive",
+      });
+      throw error;
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    setLocation('/login');
-    toast({
-      title: "Logged out",
-      description: "See you next time.",
-    });
+  const login = async (username: string, password: string) => {
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+        credentials: 'include'
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Login failed');
+      }
+
+      setUser(data.user);
+      
+      toast({
+        title: `Welcome back, ${data.user.username}`,
+        description: "You have successfully logged in.",
+      });
+
+      if (data.user.isAdmin) {
+        setLocation('/admin/dashboard');
+      } else {
+        setLocation('/dashboard');
+      }
+    } catch (error: any) {
+      toast({
+        title: "Login failed",
+        description: error.message,
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include'
+      });
+
+      setUser(null);
+      setLocation('/login');
+      
+      toast({
+        title: "Logged out",
+        description: "See you next time.",
+      });
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
   };
 
   return (
     <AuthContext.Provider value={{ 
       user, 
-      login, 
+      login,
+      register, 
       logout, 
       isAuthenticated: !!user,
-      isAdmin: user?.role === 'admin'
+      isAdmin: user?.isAdmin || false,
+      loading
     }}>
       {children}
     </AuthContext.Provider>

@@ -1,8 +1,8 @@
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { useStore } from "@/lib/store";
 import { Link } from "wouter";
+import { useEffect, useState } from "react";
 
 const container = {
   hidden: { opacity: 0 },
@@ -17,8 +17,51 @@ const item = {
   visible: { opacity: 1, y: 0 }
 };
 
+interface Product {
+  id: string;
+  name: string;
+  price: string;
+  description?: string;
+  image?: string;
+  category?: string;
+  stock: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export default function Shop() {
-  const { products } = useStore();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch('/api/products', {
+          credentials: 'include'
+        });
+        const data = await response.json();
+        if (response.ok) {
+          setProducts(data.products || []);
+        }
+      } catch (error) {
+        console.error('Failed to fetch products:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="pt-12 pb-24 container mx-auto px-6 text-center">
+          <p className="text-muted-foreground">Loading products...</p>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -37,7 +80,7 @@ export default function Shop() {
           {products.map((product) => (
             <motion.div key={product.id} variants={item} className="group cursor-pointer">
               <Link href={`/product/${product.id}`}>
-                <div className="relative aspect-[3/4] bg-secondary/5 mb-6 overflow-hidden">
+                <div className="relative aspect-3/4 bg-secondary/5 mb-6 overflow-hidden">
                   <img 
                     src={product.image || "https://placehold.co/600x800/png?text=No+Image"} 
                     alt={product.name}
@@ -55,9 +98,9 @@ export default function Shop() {
                 <div className="flex justify-between items-start">
                   <div>
                     <h3 className="text-2xl font-heading font-bold uppercase mb-1">{product.name}</h3>
-                    <p className="text-muted-foreground text-sm">{product.color}</p>
+                    <p className="text-muted-foreground text-sm">{product.category || 'Clothing'}</p>
                   </div>
-                  <p className="text-lg font-bold">${product.price}</p>
+                  <p className="text-lg font-bold">${parseFloat(product.price).toFixed(2)}</p>
                 </div>
               </Link>
             </motion.div>

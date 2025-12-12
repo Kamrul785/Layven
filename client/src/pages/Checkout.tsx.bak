@@ -212,3 +212,128 @@ export default function Checkout() {
     </Layout>
   );
 }
+                          <FormLabel className="uppercase text-xs font-bold tracking-wider">Zip Code</FormLabel>
+                          <FormControl>
+                            <Input placeholder="10001" {...field} className="rounded-none h-12 bg-secondary/5" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </section>
+
+                {/* Payment Method */}
+                <section>
+                  <h2 className="text-lg font-bold uppercase tracking-wider mb-6 pb-2 border-b border-border">Payment</h2>
+                  <FormField
+                    control={form.control}
+                    name="paymentMethod"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <RadioGroup
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                            className="flex flex-col gap-4"
+                          >
+                            <FormItem className="flex items-center space-x-3 space-y-0 border border-border p-4 cursor-pointer hover:border-black transition-colors">
+                              <FormControl>
+                                <RadioGroupItem value="card" />
+                              </FormControl>
+                              <FormLabel className="flex-1 flex items-center justify-between font-normal cursor-pointer">
+                                <span>Credit Card</span>
+                                <CreditCard className="w-5 h-5 text-muted-foreground" />
+                              </FormLabel>
+                            </FormItem>
+                            <FormItem className="flex items-center space-x-3 space-y-0 border border-border p-4 cursor-pointer hover:border-black transition-colors">
+                              <FormControl>
+                                <RadioGroupItem value="cod" />
+                              </FormControl>
+                              <FormLabel className="flex-1 flex items-center justify-between font-normal cursor-pointer">
+                                <span>Cash on Delivery</span>
+                                <Truck className="w-5 h-5 text-muted-foreground" />
+                              </FormLabel>
+                            </FormItem>
+                          </RadioGroup>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  {form.watch("paymentMethod") === "card" && (
+                    <div className="mt-6 p-6 bg-secondary/5 border border-border space-y-4">
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold uppercase tracking-wider">Card Number</label>
+                        <Input placeholder="0000 0000 0000 0000" className="bg-white rounded-none border-border" />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-xs font-bold uppercase tracking-wider">Expiry</label>
+                          <Input placeholder="MM/YY" className="bg-white rounded-none border-border" />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-bold uppercase tracking-wider">CVC</label>
+                          <Input placeholder="123" className="bg-white rounded-none border-border" />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </section>
+
+                <Button 
+                  type="submit" 
+                  size="lg" 
+                  disabled={isProcessing}
+                  className="w-full h-14 bg-black text-white hover:bg-primary hover:text-black rounded-none uppercase font-bold tracking-widest text-lg"
+                >
+                  {isProcessing ? "Processing..." : `Pay $${cartTotal}.00`}
+                </Button>
+              </form>
+            </Form>
+          </div>
+
+          {/* Order Summary Sidebar */}
+          <div className="lg:col-span-5">
+            <div className="bg-secondary/5 p-8 sticky top-24">
+              <h3 className="text-xl font-heading font-bold uppercase mb-6">Your Order</h3>
+              <div className="space-y-6 mb-8">
+                {items.map((item) => (
+                  <div key={`${item.id}-${item.selectedSize}`} className="flex gap-4">
+                    <div className="w-16 h-20 bg-white shrink-0 relative">
+                      <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                      <span className="absolute -top-2 -right-2 w-5 h-5 bg-black text-white text-xs flex items-center justify-center rounded-full">
+                        {item.quantity}
+                      </span>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-bold uppercase text-sm">{item.name}</h4>
+                      <p className="text-xs text-muted-foreground">{item.color} / {item.selectedSize}</p>
+                    </div>
+                    <div className="font-bold text-sm">${item.price * item.quantity}.00</div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="border-t border-border pt-6 space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Subtotal</span>
+                  <span>${cartTotal}.00</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Shipping</span>
+                  <span>Free</span>
+                </div>
+                <div className="flex justify-between text-xl font-bold pt-4 border-t border-border mt-4">
+                  <span>Total</span>
+                  <span>${cartTotal}.00</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Layout>
+  );
+}
