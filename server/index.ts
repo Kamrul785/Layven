@@ -153,10 +153,8 @@ app.use((req, res, next) => {
     await setupVite(httpServer, app);
   }
 
-  // For Vercel serverless, export the app without starting the server
-  if (process.env.VERCEL) {
-    module.exports = app;
-  } else {
+  // For Vercel serverless, skip starting the server
+  if (!process.env.VERCEL) {
     // ALWAYS serve the app on the port specified in the environment variable PORT
     // Other ports are firewalled. Default to 5000 if not specified.
     // this serves both the API and the client.
