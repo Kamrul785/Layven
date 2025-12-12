@@ -7,10 +7,15 @@ import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
 import session from "express-session";
+import connectPg from "connect-pg-simple";
+import pg from "pg";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { storage } from "./storage";
 import type { User } from "@shared/schema";
+
+const PgSession = connectPg(session);
+const { Pool } = pg;
 
 const app = express();
 const httpServer = createServer(app);
@@ -21,14 +26,23 @@ declare module "http" {
   }
 }
 
-// Session configuration
+// Session configuration with PostgreSQL store
+const sessionStore = process.env.DATABASE_URL
+  ? new PgSession({
+      pool: new Pool({ connectionString: process.env.DATABASE_URL }),
+      createTableIfMissing: true,
+    })
+  : undefined;
+
 app.use(
   session({
+    store: sessionStore,
     secret: process.env.SESSION_SECRET || "layv-fashion-secret-key-change-in-production",
     resave: false,
     saveUninitialized: false,
     cookie: {
       secure: process.env.NODE_ENV === "production",
+      httpOnly: true,
       maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
     },
   })
