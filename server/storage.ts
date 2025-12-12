@@ -7,10 +7,16 @@ import {
   type InsertCartItem,
   type Order,
   type InsertOrder,
-  type OrderItem
+  type OrderItem,
+  users,
+  products,
+  cartItems,
+  orders,
+  orderItems
 } from "@shared/schema";
-import { randomUUID } from "crypto";
 import bcrypt from "bcryptjs";
+import { db } from "./db";
+import { eq, and } from "drizzle-orm";
 
 // modify the interface with any CRUD methods
 // you might need
@@ -44,43 +50,25 @@ export interface IStorage {
   getOrderItems(orderId: string): Promise<OrderItem[]>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<string, User>;
-  private products: Map<string, Product>;
-  private cartItems: Map<string, CartItem>;
-  private orders: Map<string, Order>;
-  private orderItems: Map<string, OrderItem>;
-
-  constructor() {
-    this.users = new Map();
-    this.products = new Map();
-    this.cartItems = new Map();
-    this.orders = new Map();
-    this.orderItems = new Map();
-  }
-
+export class DbStorage implements IStorage {
   async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+    const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
+    return result[0];
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+    const result = await db.select().from(users).where(eq(users.username, username)).limit(1);
+    return result[0];
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    // Hash password before storing
     const hashedPassword = await bcrypt.hash(insertUser.password, 10);
-    const user: User = { 
-      ...insertUser, 
-      id,
+    const result = await db.insert(users).values({
+      username: insertUser.username,
       password: hashedPassword,
-      isAdmin: insertUser.isAdmin || false 
-    };
-    this.users.set(id, user);
-    return user;
+      isAdmin: insertUser.isAdmin || false
+    }).returning();
+    return result[0];
   }
 
   async verifyPassword(user: User, password: string): Promise<boolean> {
@@ -89,138 +77,105 @@ export class MemStorage implements IStorage {
 
   // Product methods
   async getProduct(id: string): Promise<Product | undefined> {
-    return this.products.get(id);
+    const result = await db.select().from(products).where(eq(products.id, id)).limit(1);
+    return result[0];
   }
 
   async getAllProducts(): Promise<Product[]> {
-    return Array.from(this.products.values());
+    return await db.select().from(products);
   }
 
   async createProduct(insertProduct: InsertProduct): Promise<Product> {
-    const id = randomUUID();
-    const now = new Date();
-    const product: Product = {
-      ...insertProduct,
-      id,
-      price: String(insertProduct.price),
-      stock: String(insertProduct.stock || "0"),
-      createdAt: now,
-      updatedAt: now,
-    };
-    this.products.set(id, product);
-    return product;
+    const result = await db.insert(products).values(insertProduct).returning();
+    return result[0];
   }
 
   async updateProduct(id: string, updates: Partial<InsertProduct>): Promise<Product | undefined> {
-    const product = this.products.get(id);
-    if (!product) return undefined;
-
-    const updated: Product = {
-      ...product,
-      ...updates,
-      price: updates.price ? String(updates.price) : product.price,
-      stock: updates.stock ? String(updates.stock) : product.stock,
-      updatedAt: new Date(),
-    };
-    this.products.set(id, updated);
-    return updated;
+    const result = await db.update(products)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(products.id, id))
+      .returning();
+    return result[0];
   }
 
   async deleteProduct(id: string): Promise<boolean> {
-    return this.products.delete(id);
+    const result = await db.delete(products).where(eq(products.id, id)).returning();
+    return result.length > 0;
   }
 
   // Cart methods
   async getCartItems(userId: string): Promise<CartItem[]> {
-    return Array.from(this.cartItems.values()).filter(item => item.userId === userId);
+    return await db.select().from(cartItems).where(eq(cartItems.userId, userId));
   }
 
   async addToCart(userId: string, insertItem: InsertCartItem): Promise<CartItem> {
     // Check if item already exists in cart
-    const existing = Array.from(this.cartItems.values()).find(
-      item => item.userId === userId && item.productId === insertItem.productId
-    );
+    const existing = await db.select().from(cartItems)
+      .where(and(eq(cartItems.userId, userId), eq(cartItems.productId, insertItem.productId)))
+      .limit(1);
 
-    if (existing) {
+    if (existing[0]) {
       // Update quantity
-      const updated = {
-        ...existing,
-        quantity: existing.quantity + (insertItem.quantity || 1),
-        updatedAt: new Date()
-      };
-      this.cartItems.set(existing.id, updated);
-      return updated;
+      const updated = await db.update(cartItems)
+        .set({ 
+          quantity: existing[0].quantity + (insertItem.quantity || 1),
+          updatedAt: new Date()
+        })
+        .where(eq(cartItems.id, existing[0].id))
+        .returning();
+      return updated[0];
     }
 
-    const id = randomUUID();
-    const now = new Date();
-    const cartItem: CartItem = {
-      id,
+    const result = await db.insert(cartItems).values({
       userId,
       productId: insertItem.productId,
-      quantity: insertItem.quantity || 1,
-      createdAt: now,
-      updatedAt: now,
-    };
-    this.cartItems.set(id, cartItem);
-    return cartItem;
+      quantity: insertItem.quantity || 1
+    }).returning();
+    return result[0];
   }
 
   async updateCartItem(id: string, quantity: number): Promise<CartItem | undefined> {
-    const item = this.cartItems.get(id);
-    if (!item) return undefined;
-
-    const updated = {
-      ...item,
-      quantity,
-      updatedAt: new Date()
-    };
-    this.cartItems.set(id, updated);
-    return updated;
+    const result = await db.update(cartItems)
+      .set({ quantity, updatedAt: new Date() })
+      .where(eq(cartItems.id, id))
+      .returning();
+    return result[0];
   }
 
   async removeFromCart(id: string): Promise<boolean> {
-    return this.cartItems.delete(id);
+    const result = await db.delete(cartItems).where(eq(cartItems.id, id)).returning();
+    return result.length > 0;
   }
 
   async clearCart(userId: string): Promise<boolean> {
-    const userItems = Array.from(this.cartItems.values()).filter(item => item.userId === userId);
-    userItems.forEach(item => this.cartItems.delete(item.id));
+    await db.delete(cartItems).where(eq(cartItems.userId, userId));
     return true;
   }
 
   // Order methods
   async createOrder(userId: string, insertOrder: InsertOrder, items: { productId: string, quantity: number }[]): Promise<Order> {
-    const orderId = randomUUID();
-    const now = new Date();
-    
-    const order: Order = {
-      id: orderId,
+    const result = await db.insert(orders).values({
       userId,
       customerName: insertOrder.customerName,
       customerEmail: insertOrder.customerEmail,
       shippingAddress: insertOrder.shippingAddress,
-      total: String(insertOrder.total),
-      status: "Pending",
-      createdAt: now,
-      updatedAt: now,
-    };
-    this.orders.set(orderId, order);
+      total: insertOrder.total,
+      status: "Pending"
+    }).returning();
+    
+    const order = result[0];
 
     // Create order items
     for (const item of items) {
       const product = await this.getProduct(item.productId);
       if (product) {
-        const orderItem: OrderItem = {
-          id: randomUUID(),
-          orderId,
+        await db.insert(orderItems).values({
+          orderId: order.id,
           productId: item.productId,
           productName: product.name,
           productPrice: product.price,
-          quantity: item.quantity,
-          createdAt: now,
-        };
-        this.orderItems.set(orderItem.id, orderItem);
+          quantity: item.quantity
+        });
       }
     }
 
@@ -228,33 +183,29 @@ export class MemStorage implements IStorage {
   }
 
   async getOrder(id: string): Promise<Order | undefined> {
-    return this.orders.get(id);
+    const result = await db.select().from(orders).where(eq(orders.id, id)).limit(1);
+    return result[0];
   }
 
   async getUserOrders(userId: string): Promise<Order[]> {
-    return Array.from(this.orders.values()).filter(order => order.userId === userId);
+    return await db.select().from(orders).where(eq(orders.userId, userId));
   }
 
   async getAllOrders(): Promise<Order[]> {
-    return Array.from(this.orders.values());
+    return await db.select().from(orders);
   }
 
   async updateOrderStatus(id: string, status: string): Promise<Order | undefined> {
-    const order = this.orders.get(id);
-    if (!order) return undefined;
-
-    const updated = {
-      ...order,
-      status,
-      updatedAt: new Date()
-    };
-    this.orders.set(id, updated);
-    return updated;
+    const result = await db.update(orders)
+      .set({ status, updatedAt: new Date() })
+      .where(eq(orders.id, id))
+      .returning();
+    return result[0];
   }
 
   async getOrderItems(orderId: string): Promise<OrderItem[]> {
-    return Array.from(this.orderItems.values()).filter(item => item.orderId === orderId);
+    return await db.select().from(orderItems).where(eq(orderItems.orderId, orderId));
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DbStorage();
