@@ -17,8 +17,8 @@ export function Footer() {
             <h4 className="font-heading font-bold text-lg mb-6 uppercase tracking-wider">Shop</h4>
             <ul className="space-y-4">
               <li>
-                <Link href="/shop">
-                  <a className="text-secondary-foreground/70 hover:text-white transition-colors">All Products</a>
+                <Link href="/shop" className="text-secondary-foreground/70 hover:text-white transition-colors">
+                  All Products
                 </Link>
               </li>
               <li>
@@ -34,18 +34,18 @@ export function Footer() {
             <h4 className="font-heading font-bold text-lg mb-6 uppercase tracking-wider">Support</h4>
             <ul className="space-y-4">
               <li>
-                <Link href="/contact">
-                  <a className="text-secondary-foreground/70 hover:text-white transition-colors">Contact Us</a>
+                <Link href="/contact" className="text-secondary-foreground/70 hover:text-white transition-colors">
+                  Contact Us
                 </Link>
               </li>
               <li>
-                <Link href="/faq">
-                  <a className="text-secondary-foreground/70 hover:text-white transition-colors">FAQ</a>
+                <Link href="/faq" className="text-secondary-foreground/70 hover:text-white transition-colors">
+                  FAQ
                 </Link>
               </li>
               <li>
-                <Link href="/faq">
-                  <a className="text-secondary-foreground/70 hover:text-white transition-colors">Shipping & Returns</a>
+                <Link href="/faq" className="text-secondary-foreground/70 hover:text-white transition-colors">
+                  Shipping & Returns
                 </Link>
               </li>
             </ul>

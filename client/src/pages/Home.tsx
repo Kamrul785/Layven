@@ -50,11 +50,11 @@ export default function Home() {
             <p className="text-lg md:text-xl font-light tracking-wide mb-10 text-white/90 max-w-xl mx-auto">
               Premium streetwear forged in discipline.
             </p>
-            <Link href="/shop">
-              <Button size="lg" className="bg-white text-black hover:bg-primary hover:text-black border-none text-lg px-10 py-8 rounded-none uppercase font-bold tracking-widest transition-all duration-300">
+            <Button asChild size="lg" className="bg-white text-black hover:bg-primary hover:text-black border-none text-lg px-10 py-8 rounded-none uppercase font-bold tracking-widest transition-all duration-300">
+              <Link href="/shop">
                 Shop Now
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           </motion.div>
         </div>
       </section>

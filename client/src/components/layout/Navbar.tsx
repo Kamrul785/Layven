@@ -31,23 +31,17 @@ export function Navbar() {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
       <div className="container mx-auto px-6 h-20 flex items-center justify-between">
-        <Link href="/">
-          <a className="text-2xl font-heading font-bold tracking-tighter hover:opacity-80 transition-opacity">
-            LAYVEN
-          </a>
+        <Link href="/" className="text-2xl font-heading font-bold tracking-tighter hover:opacity-80 transition-opacity">
+          LAYVEN
         </Link>
 
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center gap-8">
           {links.map((link) => (
-            <Link key={link.href} href={link.href}>
-              <a
-                className={`text-sm font-medium tracking-wide uppercase transition-colors hover:text-primary ${
-                  location === link.href ? "text-primary" : "text-foreground"
-                }`}
-              >
-                {link.label}
-              </a>
+            <Link key={link.href} href={link.href} className={`text-sm font-medium tracking-wide uppercase transition-colors hover:text-primary ${
+              location === link.href ? "text-primary" : "text-foreground"
+            }`}>
+              {link.label}
             </Link>
           ))}
         </div>
@@ -102,22 +96,24 @@ export function Navbar() {
             <SheetContent side="right" className="w-[300px] border-l border-border bg-background p-0">
               <div className="flex flex-col h-full pt-16 px-8 gap-8">
                 {links.map((link) => (
-                  <Link key={link.href} href={link.href}>
-                    <a
-                      className="text-2xl font-heading font-bold uppercase hover:text-primary transition-colors"
-                      onClick={() => setIsOpen(false)}
-                    >
-                      {link.label}
-                    </a>
+                  <Link 
+                    key={link.href} 
+                    href={link.href}
+                    className="text-2xl font-heading font-bold uppercase hover:text-primary transition-colors"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    {link.label}
                   </Link>
                 ))}
                 <div className="border-t border-border pt-8 mt-4">
                   {user ? (
                     <div className="space-y-4">
-                      <Link href={user.role === 'admin' ? "/admin/dashboard" : "/dashboard"}>
-                        <a className="text-xl font-heading font-bold uppercase hover:text-primary transition-colors block" onClick={() => setIsOpen(false)}>
-                          My Dashboard
-                        </a>
+                      <Link 
+                        href={user.role === 'admin' ? "/admin/dashboard" : "/dashboard"}
+                        className="text-xl font-heading font-bold uppercase hover:text-primary transition-colors block" 
+                        onClick={() => setIsOpen(false)}
+                      >
+                        My Dashboard
                       </Link>
                       <button 
                         onClick={() => { logout(); setIsOpen(false); }}
@@ -127,10 +123,12 @@ export function Navbar() {
                       </button>
                     </div>
                   ) : (
-                    <Link href="/login">
-                      <a className="text-xl font-heading font-bold uppercase hover:text-primary transition-colors block" onClick={() => setIsOpen(false)}>
-                        Login / Register
-                      </a>
+                    <Link 
+                      href="/login"
+                      className="text-xl font-heading font-bold uppercase hover:text-primary transition-colors block" 
+                      onClick={() => setIsOpen(false)}
+                    >
+                      Login / Register
                     </Link>
                   )}
                 </div>
