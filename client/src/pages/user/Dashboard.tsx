@@ -1,13 +1,23 @@
 import { Layout } from "@/components/layout/Layout";
 import { useAuth } from "@/lib/auth";
+import { useStore } from "@/lib/store";
 import { useLocation } from "wouter";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Package, User, LogOut, Settings } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
 
 export default function UserDashboard() {
   const { user, logout, isAuthenticated } = useAuth();
+  const { orders } = useStore();
   const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState('orders');
+
+  // Profile Edit State
+  const [isEditing, setIsEditing] = useState(false);
+  const [address, setAddress] = useState("123 Street, Dhaka, Bangladesh");
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -16,6 +26,14 @@ export default function UserDashboard() {
   }, [isAuthenticated, setLocation]);
 
   if (!user) return null;
+
+  // Filter orders for this user
+  const myOrders = orders.filter(order => order.customerEmail === user.email);
+
+  const handleSaveProfile = () => {
+    setIsEditing(false);
+    toast({ title: "Profile Updated", description: "Your shipping details have been saved." });
+  };
 
   return (
     <Layout>
@@ -31,10 +49,18 @@ export default function UserDashboard() {
               <p className="text-sm text-muted-foreground">{user.email}</p>
             </div>
 
-            <Button variant="ghost" className="w-full justify-start rounded-none uppercase tracking-wider font-bold bg-secondary/5">
+            <Button 
+              variant="ghost" 
+              onClick={() => setActiveTab('orders')}
+              className={`w-full justify-start rounded-none uppercase tracking-wider font-bold ${activeTab === 'orders' ? 'bg-secondary/5' : 'hover:bg-secondary/5'}`}
+            >
               <Package className="w-4 h-4 mr-3" /> My Orders
             </Button>
-            <Button variant="ghost" className="w-full justify-start rounded-none uppercase tracking-wider font-bold hover:bg-secondary/5">
+            <Button 
+              variant="ghost" 
+              onClick={() => setActiveTab('profile')}
+              className={`w-full justify-start rounded-none uppercase tracking-wider font-bold ${activeTab === 'profile' ? 'bg-secondary/5' : 'hover:bg-secondary/5'}`}
+            >
               <User className="w-4 h-4 mr-3" /> Profile
             </Button>
             <Button variant="ghost" className="w-full justify-start rounded-none uppercase tracking-wider font-bold hover:bg-secondary/5">
@@ -47,52 +73,94 @@ export default function UserDashboard() {
 
           {/* Main Content */}
           <div className="flex-1">
-            <h1 className="text-3xl font-heading font-black uppercase mb-8">Order History</h1>
+            {activeTab === 'orders' && (
+              <>
+                <h1 className="text-3xl font-heading font-black uppercase mb-8">Order History</h1>
 
-            <div className="space-y-6">
-              {[
-                { id: "ORD-2024-001", date: "Oct 12, 2024", status: "Delivered", total: "$160.00", items: ["Samurai Hoodie", "Ronin Sweatshirt"] },
-                { id: "ORD-2024-002", date: "Nov 05, 2024", status: "In Transit", total: "$75.00", items: ["Dojo Crewneck"] },
-              ].map((order) => (
-                <div key={order.id} className="border border-border p-6 hover:border-black transition-colors">
-                  <div className="flex flex-wrap justify-between items-start mb-6 gap-4">
-                    <div>
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Order ID</p>
-                      <p className="font-bold">{order.id}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Date</p>
-                      <p className="font-medium">{order.date}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Status</p>
-                      <span className="inline-block px-3 py-1 bg-green-100 text-green-800 text-xs font-bold uppercase tracking-wider rounded-full">
-                        {order.status}
-                      </span>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Total</p>
-                      <p className="font-bold">{order.total}</p>
-                    </div>
+                {myOrders.length === 0 ? (
+                  <div className="text-center py-12 border border-dashed border-border">
+                    <p className="text-muted-foreground mb-4">You haven't placed any orders yet.</p>
+                    <Button variant="outline" onClick={() => setLocation('/shop')}>Start Shopping</Button>
                   </div>
+                ) : (
+                  <div className="space-y-6">
+                    {myOrders.map((order) => (
+                      <div key={order.id} className="border border-border p-6 hover:border-black transition-colors">
+                        <div className="flex flex-wrap justify-between items-start mb-6 gap-4">
+                          <div>
+                            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Order ID</p>
+                            <p className="font-bold">{order.id}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Date</p>
+                            <p className="font-medium">{order.date}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Status</p>
+                            <span className={`inline-block px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-full ${
+                              order.status === 'Paid' || order.status === 'Delivered' ? 'bg-green-100 text-green-800' :
+                              order.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-blue-100 text-blue-800'
+                            }`}>
+                              {order.status}
+                            </span>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Total</p>
+                            <p className="font-bold">${order.total}</p>
+                          </div>
+                        </div>
 
-                  <div className="border-t border-border pt-4">
-                    <p className="text-sm font-medium mb-2">Items:</p>
-                    <ul className="list-disc list-inside text-sm text-muted-foreground">
-                      {order.items.map((item, i) => (
-                        <li key={i}>{item}</li>
-                      ))}
-                    </ul>
+                        <div className="border-t border-border pt-4">
+                          <p className="text-sm font-medium mb-2">Items:</p>
+                          <ul className="list-disc list-inside text-sm text-muted-foreground">
+                            {order.items.map((item, i) => (
+                              <li key={i}>{item.name} (x{item.quantity}) - Size {item.selectedSize}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  
-                  <div className="mt-6 flex justify-end">
-                    <Button variant="outline" className="rounded-none uppercase text-xs font-bold tracking-wider">
-                      View Details
-                    </Button>
+                )}
+              </>
+            )}
+
+            {activeTab === 'profile' && (
+              <>
+                <h1 className="text-3xl font-heading font-black uppercase mb-8">My Profile</h1>
+                <div className="bg-white border border-border p-8 max-w-xl">
+                  <div className="space-y-6">
+                    <div>
+                      <label className="text-xs font-bold uppercase tracking-wider block mb-2">Full Name</label>
+                      <Input value={user.name} disabled className="bg-secondary/5" />
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold uppercase tracking-wider block mb-2">Email</label>
+                      <Input value={user.email} disabled className="bg-secondary/5" />
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold uppercase tracking-wider block mb-2">Shipping Address</label>
+                      <Input 
+                        value={address} 
+                        disabled={!isEditing} 
+                        onChange={(e) => setAddress(e.target.value)} 
+                        className={isEditing ? "bg-white border-black" : "bg-secondary/5"}
+                      />
+                    </div>
+                    
+                    {isEditing ? (
+                      <div className="flex gap-4">
+                         <Button onClick={handleSaveProfile} className="bg-black text-white hover:bg-primary hover:text-black">Save Changes</Button>
+                         <Button variant="ghost" onClick={() => setIsEditing(false)}>Cancel</Button>
+                      </div>
+                    ) : (
+                      <Button variant="outline" onClick={() => setIsEditing(true)}>Edit Details</Button>
+                    )}
                   </div>
                 </div>
-              ))}
-            </div>
+              </>
+            )}
           </div>
         </div>
       </div>

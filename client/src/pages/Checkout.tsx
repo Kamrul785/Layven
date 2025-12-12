@@ -2,6 +2,7 @@ import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCart } from "@/lib/cart";
+import { useStore } from "@/lib/store";
 import { Link, useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,7 +12,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { CreditCard, Truck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { useAuth } from "@/lib/auth";
 
 const formSchema = z.object({
   email: z.string().email(),
@@ -25,6 +26,8 @@ const formSchema = z.object({
 
 export default function Checkout() {
   const { items, cartTotal, clearCart } = useCart();
+  const { placeOrder } = useStore();
+  const { user } = useAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -32,6 +35,9 @@ export default function Checkout() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      email: user?.email || "",
+      firstName: user?.name.split(" ")[0] || "",
+      lastName: user?.name.split(" ")[1] || "",
       paymentMethod: "card",
     },
   });
@@ -41,6 +47,20 @@ export default function Checkout() {
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 2000));
     
+    placeOrder({
+      total: cartTotal,
+      items: items.map(item => ({
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        selectedSize: item.selectedSize,
+        image: item.image
+      })),
+      customerEmail: values.email,
+      customerName: `${values.firstName} ${values.lastName}`
+    });
+
     toast({
       title: "Order Placed Successfully!",
       description: `Thank you ${values.firstName}. Your order has been confirmed.`,
@@ -48,7 +68,13 @@ export default function Checkout() {
     
     clearCart();
     setIsProcessing(false);
-    setLocation("/");
+    
+    // Redirect to dashboard if logged in, otherwise home
+    if (user) {
+      setLocation("/dashboard");
+    } else {
+      setLocation("/");
+    }
   };
 
   if (items.length === 0) {
