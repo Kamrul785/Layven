@@ -1,14 +1,24 @@
 import { Link, useLocation } from "wouter";
-import { Menu, ShoppingBag } from "lucide-react";
+import { Menu, ShoppingBag, User } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useCart } from "@/lib/cart";
+import { useAuth } from "@/lib/auth";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [location] = useLocation();
   const { cartCount } = useCart();
+  const { user, logout } = useAuth();
 
   const links = [
     { href: "/", label: "Home" },
@@ -43,6 +53,32 @@ export function Navbar() {
         </div>
 
         <div className="flex items-center gap-4">
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="relative hover:bg-transparent hover:text-primary transition-colors">
+                  <User className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 rounded-none border-border bg-background">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <Link href={user.role === 'admin' ? "/admin/dashboard" : "/dashboard"}>
+                  <DropdownMenuItem className="cursor-pointer">Dashboard</DropdownMenuItem>
+                </Link>
+                <DropdownMenuItem onClick={logout} className="cursor-pointer text-red-500">
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Link href="/login">
+              <Button variant="ghost" size="icon" className="relative hover:bg-transparent hover:text-primary transition-colors">
+                <User className="h-5 w-5" />
+              </Button>
+            </Link>
+          )}
+
           <Link href="/cart">
             <Button variant="ghost" size="icon" className="relative hover:bg-transparent hover:text-primary transition-colors">
               <ShoppingBag className="h-5 w-5" />
@@ -75,6 +111,29 @@ export function Navbar() {
                     </a>
                   </Link>
                 ))}
+                <div className="border-t border-border pt-8 mt-4">
+                  {user ? (
+                    <div className="space-y-4">
+                      <Link href={user.role === 'admin' ? "/admin/dashboard" : "/dashboard"}>
+                        <a className="text-xl font-heading font-bold uppercase hover:text-primary transition-colors block" onClick={() => setIsOpen(false)}>
+                          My Dashboard
+                        </a>
+                      </Link>
+                      <button 
+                        onClick={() => { logout(); setIsOpen(false); }}
+                        className="text-xl font-heading font-bold uppercase text-red-500 hover:text-red-600 transition-colors block"
+                      >
+                        Logout
+                      </button>
+                    </div>
+                  ) : (
+                    <Link href="/login">
+                      <a className="text-xl font-heading font-bold uppercase hover:text-primary transition-colors block" onClick={() => setIsOpen(false)}>
+                        Login / Register
+                      </a>
+                    </Link>
+                  )}
+                </div>
               </div>
             </SheetContent>
           </Sheet>
