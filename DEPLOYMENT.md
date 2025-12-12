@@ -20,17 +20,28 @@ git push -u origin main
 
 ### Step 2: Set Up PostgreSQL Database
 
-#### Option A: Vercel Postgres (Recommended)
-1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
-2. Create a new project
-3. Go to Storage → Create Database → Postgres
-4. Copy the `DATABASE_URL` connection string
-
-#### Option B: Neon (Free Alternative)
+#### Option A: Neon (Recommended - Easiest Setup)
 1. Go to [Neon Console](https://console.neon.tech)
-2. Create a new project
-3. Copy the connection string
-4. Format: `postgresql://user:password@host/database?sslmode=require`
+2. Sign up with GitHub/Email
+3. Create a new project
+4. Copy the connection string from the **Connection Details** section
+5. Format: `postgresql://user:password@host/database?sslmode=require`
+6. Save this for later (you'll need it in Step 3)
+
+**Neon Benefits:**
+- Free tier with generous limits (3 projects, 10GB storage)
+- No credit card required
+- Automatic backups
+- Easy to manage
+
+#### Option B: Vercel Postgres (Optional Alternative)
+1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
+2. Select your project (create one first if needed)
+3. Go to the **Storage** tab
+4. Click **Create** → Select **Postgres**
+5. Choose a region (closest to your users)
+6. Click **Create**
+7. Copy the **Database URL** shown in the credentials
 
 ### Step 3: Deploy to Vercel
 
