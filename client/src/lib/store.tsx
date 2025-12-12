@@ -24,9 +24,11 @@ export interface Order {
 interface StoreContextType {
   products: Product[];
   orders: Order[];
+  featuredProductIds: number[];
   placeOrder: (order: Omit<Order, 'id' | 'date' | 'status'>) => void;
   updateOrderStatus: (orderId: string, status: Order['status']) => void;
   addProduct: (product: Omit<Product, 'id'>) => void;
+  toggleFeatured: (productId: number) => void;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -72,6 +74,8 @@ const initialOrders: Order[] = [
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [orders, setOrders] = useState<Order[]>(initialOrders);
+  // Default featured products: first 3
+  const [featuredProductIds, setFeaturedProductIds] = useState<number[]>([1, 2, 3]);
 
   const placeOrder = (newOrderData: Omit<Order, 'id' | 'date' | 'status'>) => {
     const newOrder: Order = {
@@ -97,8 +101,28 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setProducts(prev => [...prev, newProduct]);
   };
 
+  const toggleFeatured = (productId: number) => {
+    setFeaturedProductIds(prev => {
+      if (prev.includes(productId)) {
+        return prev.filter(id => id !== productId);
+      } else {
+        // Limit to 3 or 4 if desired, or allow unlimited.
+        // For UI layout reasons, multiples of 3 are good, but I'll allow flexible for now.
+        return [...prev, productId];
+      }
+    });
+  };
+
   return (
-    <StoreContext.Provider value={{ products, orders, placeOrder, updateOrderStatus, addProduct }}>
+    <StoreContext.Provider value={{ 
+      products, 
+      orders, 
+      featuredProductIds, 
+      placeOrder, 
+      updateOrderStatus, 
+      addProduct,
+      toggleFeatured 
+    }}>
       {children}
     </StoreContext.Provider>
   );

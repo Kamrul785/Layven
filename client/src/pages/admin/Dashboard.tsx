@@ -2,7 +2,7 @@ import { useAuth } from "@/lib/auth";
 import { useStore } from "@/lib/store";
 import { useLocation } from "wouter";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Package, Users, DollarSign, TrendingUp, LogOut, Plus } from "lucide-react";
+import { Package, Users, DollarSign, TrendingUp, LogOut, Plus, Star, StarOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import {
@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { Switch } from "@/components/ui/switch";
 
 const chartData = [
   { name: 'Mon', sales: 4000 },
@@ -34,7 +35,7 @@ const chartData = [
 
 export default function AdminDashboard() {
   const { user, logout, isAdmin } = useAuth();
-  const { orders, updateOrderStatus, addProduct } = useStore();
+  const { orders, updateOrderStatus, addProduct, products, featuredProductIds, toggleFeatured } = useStore();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -65,7 +66,7 @@ export default function AdminDashboard() {
       name: newProductName,
       price: parseFloat(newProductPrice),
       color: "Black", // Default
-      image: "", // Placeholder
+      image: "https://placehold.co/600x800/png?text=" + newProductName.replace(/ /g, "+"), // Auto-generate placeholder
       description: "New addition to the collection.",
       sizes: ["S", "M", "L", "XL"]
     });
@@ -240,8 +241,8 @@ export default function AdminDashboard() {
         )}
 
         {activeTab === 'products' && (
-          <div className="bg-white border border-border shadow-sm p-8">
-            <div className="flex justify-between mb-8">
+          <div className="bg-white border border-border shadow-sm">
+            <div className="p-8 border-b border-border flex justify-between items-center">
               <h3 className="text-xl font-bold uppercase">Product Catalog</h3>
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
@@ -269,7 +270,40 @@ export default function AdminDashboard() {
                 </DialogContent>
               </Dialog>
             </div>
-            <p className="text-muted-foreground">Product management features are currently in mock mode. You can add items to the list above.</p>
+            
+            <div className="p-8">
+              <table className="w-full">
+                <thead>
+                  <tr className="text-left text-xs text-muted-foreground uppercase tracking-wider">
+                    <th className="pb-4">Product</th>
+                    <th className="pb-4">Color</th>
+                    <th className="pb-4 text-right">Price</th>
+                    <th className="pb-4 text-right">Featured on Home</th>
+                  </tr>
+                </thead>
+                <tbody className="text-sm">
+                  {products.map((product) => (
+                    <tr key={product.id} className="border-b border-border last:border-0 hover:bg-secondary/5 transition-colors">
+                      <td className="py-4 font-bold">{product.name}</td>
+                      <td className="py-4 text-muted-foreground">{product.color}</td>
+                      <td className="py-4 text-right font-medium">${product.price}</td>
+                      <td className="py-4 text-right">
+                        <div className="flex justify-end">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => toggleFeatured(product.id)}
+                            className={featuredProductIds.includes(product.id) ? "text-yellow-500 hover:text-yellow-600" : "text-muted-foreground hover:text-black"}
+                          >
+                            {featuredProductIds.includes(product.id) ? <Star className="w-5 h-5 fill-current" /> : <StarOff className="w-5 h-5" />}
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 

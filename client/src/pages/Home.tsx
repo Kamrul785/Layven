@@ -5,9 +5,7 @@ import { motion } from "framer-motion";
 import { ArrowRight, Instagram, Facebook } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import heroImage from "@assets/generated_images/hero_banner_for_layven_streetwear_brand.png";
-import blueSweatshirt from "@assets/generated_images/powder_blue_sweatshirt_product_shot.png";
-import charcoalSweatshirt from "@assets/generated_images/charcoal_sweatshirt_product_shot.png";
-import beigeSweatshirt from "@assets/generated_images/beige_sweatshirt_product_shot.png";
+import { useStore } from "@/lib/store";
 
 const fadeIn = {
   hidden: { opacity: 0, y: 20 },
@@ -25,6 +23,10 @@ const staggerContainer = {
 };
 
 export default function Home() {
+  const { products, featuredProductIds } = useStore();
+
+  const featuredProducts = products.filter(p => featuredProductIds.includes(p.id));
+
   return (
     <Layout>
       {/* Hero Section */}
@@ -78,27 +80,25 @@ export default function Home() {
             viewport={{ once: true }}
             className="grid grid-cols-1 md:grid-cols-3 gap-8"
           >
-            {[
-              { img: blueSweatshirt, name: "Samurai Hoodie", color: "Powder Blue" },
-              { img: charcoalSweatshirt, name: "Ronin Sweatshirt", color: "Charcoal" },
-              { img: beigeSweatshirt, name: "Dojo Crewneck", color: "Beige" }
-            ].map((product, idx) => (
-              <motion.div key={idx} variants={fadeIn} className="group cursor-pointer">
-                <div className="relative aspect-[3/4] overflow-hidden bg-secondary/5 mb-6">
-                  <img 
-                    src={product.img} 
-                    alt={product.name}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
-                  />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
-                  <div className="absolute bottom-0 left-0 right-0 p-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-y-4 group-hover:translate-y-0">
-                    <Button className="w-full bg-white text-black hover:bg-primary border-none rounded-none uppercase font-bold tracking-wider">
-                      View Details
-                    </Button>
+            {featuredProducts.map((product) => (
+              <motion.div key={product.id} variants={fadeIn} className="group cursor-pointer">
+                <Link href={`/product/${product.id}`}>
+                  <div className="relative aspect-[3/4] overflow-hidden bg-secondary/5 mb-6">
+                    <img 
+                      src={product.image || "https://placehold.co/600x800/png?text=No+Image"} 
+                      alt={product.name}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
+                    />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
+                    <div className="absolute bottom-0 left-0 right-0 p-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-y-4 group-hover:translate-y-0">
+                      <Button className="w-full bg-white text-black hover:bg-primary border-none rounded-none uppercase font-bold tracking-wider">
+                        View Details
+                      </Button>
+                    </div>
                   </div>
-                </div>
-                <h3 className="text-xl font-heading font-bold uppercase mb-1">{product.name}</h3>
-                <p className="text-muted-foreground">{product.color}</p>
+                  <h3 className="text-xl font-heading font-bold uppercase mb-1">{product.name}</h3>
+                  <p className="text-muted-foreground">{product.color}</p>
+                </Link>
               </motion.div>
             ))}
           </motion.div>

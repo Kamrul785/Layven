@@ -1,7 +1,7 @@
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { products } from "@/lib/products";
+import { useStore } from "@/lib/store";
 import { Link } from "wouter";
 
 const container = {
@@ -18,6 +18,8 @@ const item = {
 };
 
 export default function Shop() {
+  const { products } = useStore();
+
   return (
     <Layout>
       <div className="pt-12 pb-24 container mx-auto px-6">
@@ -37,7 +39,7 @@ export default function Shop() {
               <Link href={`/product/${product.id}`}>
                 <div className="relative aspect-[3/4] bg-secondary/5 mb-6 overflow-hidden">
                   <img 
-                    src={product.image} 
+                    src={product.image || "https://placehold.co/600x800/png?text=No+Image"} 
                     alt={product.name}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
