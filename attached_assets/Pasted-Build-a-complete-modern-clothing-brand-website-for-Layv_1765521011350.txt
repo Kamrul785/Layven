@@ -1,0 +1,217 @@
+Build a complete modern clothing brand website for “Layven” using HTML, CSS, and JavaScript. Follow all instructions below to create the full layout, sections, design style, and structure.
+
+🌟 Brand Information
+
+Brand Name: Layven
+
+Industry: Premium Streetwear Clothing
+
+Brand Theme: Samurai-inspired — Power, Courage, Discipline
+
+Tagline: Wear Your Strength.
+
+🧱 Website Requirements
+
+Build a fully responsive website with smooth modern UI, clean typography, and premium aesthetic.
+Use HTML + CSS (Tailwind or custom CSS) + minimal JavaScript for interactions.
+
+🎨 Design Style
+
+Modern
+
+Minimalistic
+
+Premium streetwear vibes
+
+Samurai-inspired mood
+
+Soft clean layout
+
+High contrast sections
+
+Large product images
+
+Color Palette
+
+Powder Blue (#A7CCE8)
+
+Charcoal (#2E2E2E)
+
+Black (#000000)
+
+White (#FFFFFF)
+
+Typography
+
+Bold headings
+
+Clean sans-serif body font
+
+📄 Pages to Build
+1️⃣ Home Page
+
+Sections needed:
+
+Hero Section
+
+Large minimal banner
+
+Tagline: Wear Your Strength
+
+“Shop Now” button
+
+Background: soft Powder Blue or gradient
+
+Featured Product Section
+
+Display the 3 sweatshirt colors:
+
+Powder Blue
+
+Charcoal
+
+Beige
+
+Grid layout
+
+Hover animations
+
+Brand Story Preview
+
+Short description of Samurai inspiration
+
+“Explore Our Story” button
+
+Newsletter Section
+
+Email input
+
+“Join the Layven Tribe”
+
+Minimal dark theme
+
+Instagram / Social Section
+
+Icons for Facebook and Instagram
+
+2️⃣ Shop Page
+
+Display all Sweatshirts in a clean grid
+
+Each product card includes:
+
+Large product image
+
+Color name
+
+Size options: M, L, XL
+
+Button: “View Details”
+
+Do NOT show price
+
+Add sections for upcoming categories:
+
+Leather Jackets (Coming Soon)
+
+Sweaters (Coming Soon)
+
+Minimalist T-Shirts (Coming Soon)
+
+3️⃣ About Page
+
+Include:
+
+Large banner
+
+Full brand story explaining:
+
+Samurai symbolism
+
+Power, courage, discipline
+
+Minimalistic premium focus
+
+Vision: become a major streetwear brand in Bangladesh
+
+Mission & philosophy section photos
+
+Clean two-column layout
+
+4️⃣ Contact Page
+
+Include:
+
+Contact form (name, email, message)
+
+Email section
+
+Social media icons
+
+Minimal layout
+
+5️⃣ FAQ Page
+
+Sections needed:
+
+Shipping info
+
+Size guide
+
+Care instructions
+
+Returns & exchanges
+
+Ensure clean accordion UI or minimal list style.
+
+🔧 Functional Requirements
+
+Fully responsive
+
+Clean animations
+
+Smooth scroll
+
+Reusable components (header, footer, product card)
+
+Sticky navigation bar
+
+Mobile menu
+
+No backend required (static site okay)
+
+🧩 Special Instructions
+
+Do NOT show product prices
+
+Use large, premium-looking product cards
+
+Use the color palette consistently
+
+Ensure the site looks like a premium streetwear brand
+
+Use minimal JS for interactivity
+
+Keep the design simple, bold, clean, modern
+
+📌 Output Format
+
+Generate:
+
+index.html
+
+about.html
+
+shop.html
+
+contact.html
+
+faq.html
+
+style.css
+
+script.js
+
+Make sure all internal links work and the layout is consistent across pages.
+
+🚀 End of Prompt — Build the full Layven website with this specification.
