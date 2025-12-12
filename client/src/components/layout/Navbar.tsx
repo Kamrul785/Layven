@@ -57,7 +57,7 @@ export function Navbar() {
               <DropdownMenuContent align="end" className="w-56 rounded-none border-border bg-background">
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <Link href={user.role === 'admin' ? "/admin/dashboard" : "/dashboard"}>
+                <Link href={user.isAdmin ? "/admin/dashboard" : "/dashboard"}>
                   <DropdownMenuItem className="cursor-pointer">Dashboard</DropdownMenuItem>
                 </Link>
                 <DropdownMenuItem onClick={logout} className="cursor-pointer text-red-500">
@@ -109,7 +109,7 @@ export function Navbar() {
                   {user ? (
                     <div className="space-y-4">
                       <Link 
-                        href={user.role === 'admin' ? "/admin/dashboard" : "/dashboard"}
+                        href={user.isAdmin ? "/admin/dashboard" : "/dashboard"}
                         className="text-xl font-heading font-bold uppercase hover:text-primary transition-colors block" 
                         onClick={() => setIsOpen(false)}
                       >

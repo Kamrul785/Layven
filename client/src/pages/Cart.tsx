@@ -36,23 +36,22 @@ export default function Cart() {
               <AnimatePresence>
                 {items.map((item) => (
                   <motion.div
-                    key={`${item.id}-${item.selectedSize}`}
+                    key={item.id}
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
                     className="flex gap-6 py-8 border-b border-border"
                   >
                     <div className="w-24 h-32 bg-secondary/5 shrink-0">
-                      <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                      <img src={item.product?.image || "https://placehold.co/80x120/png"} alt={item.product?.name} className="w-full h-full object-cover" />
                     </div>
                     
-                    <div className="flex-grow flex flex-col justify-between">
+                    <div className="grow flex flex-col justify-between">
                       <div className="flex justify-between items-start">
                         <div>
-                          <h3 className="text-xl font-heading font-bold uppercase">{item.name}</h3>
-                          <p className="text-muted-foreground text-sm">{item.color} / Size {item.selectedSize}</p>
+                          <h3 className="text-xl font-heading font-bold uppercase">{item.product?.name}</h3>
                         </div>
-                        <p className="text-lg font-bold">${item.price * item.quantity}.00</p>
+                        <p className="text-lg font-bold">${item.product ? (parseFloat(item.product.price) * item.quantity).toFixed(2) : '0.00'}</p>
                       </div>
 
                       <div className="flex justify-between items-end">
@@ -61,7 +60,7 @@ export default function Cart() {
                           <span className="text-sm font-medium">Qty: {item.quantity}</span>
                         </div>
                         <button 
-                          onClick={() => removeFromCart(item.id, item.selectedSize)}
+                          onClick={() => removeFromCart(item.id)}
                           className="text-sm text-red-500 hover:text-red-700 flex items-center gap-1 uppercase font-bold tracking-wider"
                         >
                           <Trash2 className="w-4 h-4" /> Remove

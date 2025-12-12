@@ -32,19 +32,10 @@ export default function ProductDetails() {
   }
 
   const handleAddToCart = () => {
-    if (!selectedSize) {
-      toast({
-        title: "Please select a size",
-        description: "You must choose a size before adding to cart.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    addToCart(product, selectedSize);
+    addToCart(String(product.id));
     toast({
       title: "Added to Cart",
-      description: `${product.name} (${selectedSize}) has been added.`,
+      description: `${product.name} has been added.`,
     });
   };
 
@@ -62,7 +53,7 @@ export default function ProductDetails() {
           <motion.div 
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="bg-secondary/5 relative aspect-[3/4] overflow-hidden"
+            className="bg-secondary/5 relative aspect-3/4 overflow-hidden"
           >
             <img 
               src={product.image} 

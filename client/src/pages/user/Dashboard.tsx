@@ -28,7 +28,7 @@ export default function UserDashboard() {
   if (!user) return null;
 
   // Filter orders for this user
-  const myOrders = orders.filter(order => order.customerEmail === user.email);
+  const myOrders = orders.filter(order => order.customerName === user.username);
 
   const handleSaveProfile = () => {
     setIsEditing(false);
@@ -43,10 +43,10 @@ export default function UserDashboard() {
           <aside className="w-full md:w-64 space-y-2">
             <div className="p-6 bg-secondary/5 mb-6 border border-border">
               <div className="w-16 h-16 bg-black text-white rounded-full flex items-center justify-center text-2xl font-bold mb-4">
-                {user.name.charAt(0)}
+                {user.username.charAt(0)}
               </div>
-              <h2 className="font-bold text-lg">{user.name}</h2>
-              <p className="text-sm text-muted-foreground">{user.email}</p>
+              <h2 className="font-bold text-lg">{user.username}</h2>
+              <p className="text-sm text-muted-foreground">Member</p>
             </div>
 
             <Button 
@@ -133,11 +133,11 @@ export default function UserDashboard() {
                   <div className="space-y-6">
                     <div>
                       <label className="text-xs font-bold uppercase tracking-wider block mb-2">Full Name</label>
-                      <Input value={user.name} disabled className="bg-secondary/5" />
+                      <Input value={user.username} disabled className="bg-secondary/5" />
                     </div>
                     <div>
                       <label className="text-xs font-bold uppercase tracking-wider block mb-2">Email</label>
-                      <Input value={user.email} disabled className="bg-secondary/5" />
+                      <Input value={user.username + "@example.com"} disabled className="bg-secondary/5" />
                     </div>
                     <div>
                       <label className="text-xs font-bold uppercase tracking-wider block mb-2">Shipping Address</label>
