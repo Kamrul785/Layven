@@ -1,12 +1,14 @@
 import { Link, useLocation } from "wouter";
-import { Menu, X, ShoppingBag } from "lucide-react";
+import { Menu, ShoppingBag } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { useCart } from "@/lib/cart";
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [location] = useLocation();
+  const { cartCount } = useCart();
 
   const links = [
     { href: "/", label: "Home" },
@@ -41,10 +43,17 @@ export function Navbar() {
         </div>
 
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" className="relative hover:bg-transparent hover:text-primary transition-colors">
-            <ShoppingBag className="h-5 w-5" />
-            <span className="sr-only">Cart</span>
-          </Button>
+          <Link href="/cart">
+            <Button variant="ghost" size="icon" className="relative hover:bg-transparent hover:text-primary transition-colors">
+              <ShoppingBag className="h-5 w-5" />
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary text-black text-[10px] font-bold flex items-center justify-center rounded-full">
+                  {cartCount}
+                </span>
+              )}
+              <span className="sr-only">Cart</span>
+            </Button>
+          </Link>
 
           {/* Mobile Menu */}
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
